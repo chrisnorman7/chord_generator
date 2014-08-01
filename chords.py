@@ -5,6 +5,7 @@ from string import split
 config = {
 "chord_name" : ",blank ,*ord ,template",
 "neck_length" : 7,
+"auto_size" : 0,
 "fingers" : ["#j", "#a", "#b", "#c", "#d"],
 "strings" : [";e", ";b", ";g", ";d", ";a", ";e"],
 "empty_fret" : "33",

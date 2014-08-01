@@ -1,0 +1,2 @@
+Known bugs:
+If you provide anything except 6 strings, the program crashes with less than 6, and ignores any more than 6.
