@@ -48,8 +48,8 @@ for a in argv[1:]:
       quit("Configuration options must be passed with --option=value.")
     [option, value] = a
     option = option[2:]
-    if not option in config.keys():
-      quit("Invalid configuration directive: --" + option + ".")
+    if not config.has_key(option):
+      quit("Invalid configuration directive: --" + option + ". See --config for a list.")
     func = type(config[option])
     if func == list:
       config[option] = split(value, ",")
@@ -79,17 +79,25 @@ for a in argv[1:]:
       quit("Only " + str(len(config["fingers"])) + " fingers are named. These are numbered from 0 to " + str(len(config["fingers"]) - 1) + ". " + str(arg_finger) + " is invalid.")
     elif not (arg_fret in range(0,config["neck_length"] + 1)) and not config["auto_size"]:
       quit("This instrument only has " + str(config["neck_length"]) + " frets. " + str(arg_fret) + " is out of range.")
+    if not neck.has_key(arg_string):
+      neck[arg_string] = {}
     if not arg_fret:
       neck[arg_string][0] = config["silent_string"]
     else:
-      arg_finger = config["fingers"][arg_finger]
-      if len(arg_finger) == 1:
-        arg_finger = "#" + arg_finger
+      arg_finger = config["fingers"][arg_finger].rjust(2, "#")
       neck[arg_string][arg_fret - 1] = arg_finger
-      if neck[arg_string][0] == config["empty_string"]:
-        neck[arg_string][0] = ""
-
+      try:
+        if neck[arg_string][0] == config["empty_string"]:
+          del neck[arg_string][0]
+      except:
+        pass
 print (config["chord_name"] + "\n")
+
+if config["auto_size"]:
+  config["neck_length"] = 0
+  for n in neck:
+    for f in neck[n].keys():
+      config["neck_length"] = max(config["neck_length"], f + 1)
 
 line = "  "
 for r in range(1,config["neck_length"] + 1):
@@ -99,22 +107,23 @@ for r in range(1,config["neck_length"] + 1):
   line += " " + number
 print(line)
 
-counter = 0
-for n in neck:
-  line = config["strings"][counter] + " "
-  counter += 1
-  for r in range(0, len(n)):
-    fret = n[r]
-    if not fret:
-      line += config["empty_fret"]
-      if r < len(n) - 1 and n[r + 1]:
-        line += config["pre_nonempty_fret"]
-      else:
-        line += config["normal_fret"]
+for counter in range(0,len(config["strings"])):
+  line = config["strings"][counter].ljust(3, " ")
+  for n in range(0,config["neck_length"]):
+    if n == 0 and not neck.has_key(counter):
+      fret = config["empty_string"]
     else:
-      line += fret
-      if fret == config["silent_string"]:
-        line += config["normal_fret"]
-      else:
-        line += config["nonempty_fret"]
+      try:
+        fret = neck[counter][n]
+      except:
+        fret = config["empty_fret"]
+    line += fret
+    if not fret in [config["empty_fret"], config["silent_string"]]:
+      line += config["nonempty_fret"]
+      continue
+    try:
+      if neck[counter][n + 1]:
+        line += config["pre_nonempty_fret"]
+    except:
+      line += config["normal_fret"]
   print(line)
