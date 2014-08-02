@@ -6,6 +6,7 @@ config = {
 "chord_name" : ",blank ,*ord ,template",
 "neck_length" : 7,
 "auto_size" : 0,
+"display_spec": 1,
 "fingers" : ["#j", "#a", "#b", "#c", "#d"],
 "strings" : [";e", ";b", ";g", ";d", ";a", ";e"],
 "empty_fret" : "33",
@@ -18,13 +19,7 @@ config = {
 
 help_msg = "Syntax: " + argv[0] + " [--option1=value[ --option2=value2[ ...]]] [string[:fret:finger][ string[:fret:finger][ ...]]]\n\nOptions must be provided as --option=value, and for a list of all possible configuration directives with their current values, use --config.\nAll arguments must be numbers. For example 5:2:4, would place the 4th finger on the 2nd fret of the 5th string."
 
-neck = []
-for string in config["strings"]:
-  actual_string = []
-  for r in range(0,config["neck_length"]):
-    actual_string.append("")
-  actual_string[0] = config["empty_string"]
-  neck.append(actual_string)
+neck = {}
 
 def convert_number(n):
   numbers = ["j", "a", "b", "c", "d", "e", "f", "g", "h", "i"]
@@ -52,14 +47,17 @@ for a in argv[1:]:
     if len(a) != 2:
       quit("Configuration options must be passed with --option=value.")
     [option, value] = a
-    option = option.strip("--")
+    option = option[2:]
     if not option in config.keys():
       quit("Invalid configuration directive: --" + option + ".")
     func = type(config[option])
     if func == list:
       config[option] = split(value, ",")
     else:
-      config[option] = func(value)
+      try:
+        config[option] = func(value)
+      except ValueError:
+        quit("Invalid value for --" + option + ": " + value + ". Option expects value of " + str(type(config[option])) + ".")
     continue
   else:
     a = split(a, ":")
@@ -76,14 +74,13 @@ for a in argv[1:]:
       quit(help_msg)
     arg_string -= 1
     if not (arg_string in range(0,len(config["strings"]))):
-      arg_string += 1
-      quit("This instrument is only configured for " + str(len(config["strings"])) + " strings. Thus " + str(arg_string) + " is out of range.")
+      quit("This instrument is only configured for " + str(len(config["strings"])) + " strings. Thus " + str(arg_string + 1) + " is out of range.")
     elif not (arg_finger in range(0, len(config["fingers"]))):
       quit("Only " + str(len(config["fingers"])) + " fingers are named. These are numbered from 0 to " + str(len(config["fingers"]) - 1) + ". " + str(arg_finger) + " is invalid.")
-    elif not (arg_fret in range(0,config["neck_length"] + 1)):
+    elif not (arg_fret in range(0,config["neck_length"] + 1)) and not config["auto_size"]:
       quit("This instrument only has " + str(config["neck_length"]) + " frets. " + str(arg_fret) + " is out of range.")
     if not arg_fret:
-      neck[arg_string][1] = config["silent_string"]
+      neck[arg_string][0] = config["silent_string"]
     else:
       arg_finger = config["fingers"][arg_finger]
       if len(arg_finger) == 1:
