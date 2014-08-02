@@ -6,7 +6,9 @@ config = {
 "chord_name" : ",blank ,*ord ,template",
 "neck_length" : 7,
 "auto_size" : 0,
-"display_spec": 1,
+"show_brief": 1,
+"brief_delimiter" : "4",
+"brief_seperator" : "-",
 "fingers" : ["#j", "#a", "#b", "#c", "#d"],
 "strings" : [";e", ";b", ";g", ";d", ";a", ";e"],
 "empty_fret" : "33",
@@ -26,7 +28,7 @@ def convert_number(n):
   new_string = ""
   for t in str(n):
     new_string += numbers[int(t)]
-  return new_string
+  return new_string.rjust(2, "#")
 
 for a in argv[1:]:
   if a == "-H" or a == "--help":
@@ -91,7 +93,8 @@ for a in argv[1:]:
           del neck[arg_string][0]
       except:
         pass
-print (config["chord_name"] + "\n")
+
+print(config["chord_name"])
 
 if config["auto_size"]:
   config["neck_length"] = 0
@@ -99,12 +102,24 @@ if config["auto_size"]:
     for f in neck[n].keys():
       config["neck_length"] = max(config["neck_length"], f + 1)
 
+line = ""
+if config["show_brief"]:
+  for counter in range(0, len(config["strings"])):
+    if not neck.has_key(counter):
+      line += config["empty_string"]
+    else:
+      for k in neck[counter].keys():
+        if neck[counter][k] == config["silent_string"]:
+          line += config["silent_string"]
+        else:
+          line += convert_number(k + 1) + config["brief_delimiter"] + neck[counter][k]
+    line += config["brief_seperator"]
+  line = line[0:-1]
+print(line)
+
 line = "  "
 for r in range(1,config["neck_length"] + 1):
-  number = convert_number(r)
-  if len(number) == 1:
-    number = "#" + number
-  line += " " + number
+  line += " " + convert_number(r)
 print(line)
 
 for counter in range(0,len(config["strings"])):

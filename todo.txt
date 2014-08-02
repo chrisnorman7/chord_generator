@@ -1,2 +1,2 @@
 Todo list:
-Come up with a better solution for the frets database than making a big ugly array.
+Nothing
