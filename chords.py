@@ -123,7 +123,7 @@ for r in range(1,config["neck_length"] + 1):
 print(line)
 
 for counter in range(0,len(config["strings"])):
-  line = config["strings"][counter].ljust(3, " ")
+  line = config["strings"][counter].rjust(2, ";").ljust(3, " ")
   for n in range(0,config["neck_length"]):
     if n == 0 and not neck.has_key(counter):
       fret = config["empty_string"]
