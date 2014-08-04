@@ -16,7 +16,8 @@ config = {
 "normal_fret" : "=",
 "pre_nonempty_fret" : "l",
 "empty_string" : "x",
-"silent_string" : "=="
+"silent_string" : "==",
+"input_seperator" : "."
 }
 
 help_msg = "Syntax: " + argv[0] + " [--option1=value[ --option2=value2[ ...]]] [string[:fret:finger][ string[:fret:finger][ ...]]]\n\nOptions must be provided as --option=value, and for a list of all possible configuration directives with their current values, use --config.\nAll arguments must be numbers. For example 5:2:4, would place the 4th finger on the 2nd fret of the 5th string."
@@ -62,7 +63,7 @@ for a in argv[1:]:
         quit("Invalid value for --" + option + ": " + value + ". Option expects value of " + str(type(config[option])) + ".")
     continue
   else:
-    a = split(a, ":")
+    a = split(a, config["input_seperator"])
     for r in range(0,len(a)):
       try:
         a[r] = int(a[r])
