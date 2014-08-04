@@ -16,7 +16,7 @@ config = {
 "normal_fret" : "=",
 "pre_nonempty_fret" : "l",
 "empty_string" : "x",
-"silent_string" : "==",
+"silent_string" : "=",
 "input_seperator" : "."
 }
 
@@ -137,6 +137,8 @@ for counter in range(0,len(config["strings"])):
     if not fret in [config["empty_fret"], config["silent_string"]]:
       line += config["nonempty_fret"]
       continue
+    if fret == config["silent_string"]:
+      line = line.ljust(5, config["silent_string"])
     try:
       if neck[counter][n + 1]:
         line += config["pre_nonempty_fret"]
