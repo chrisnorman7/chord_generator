@@ -6,7 +6,7 @@ config = {
 "chord_name" : ",blank ,*ord ,template",
 "neck_length" : 7,
 "auto_size" : 0,
-"show_brief": 1,
+"show_brief" : 1,
 "brief_delimiter" : "4",
 "brief_seperator" : "-",
 "fingers" : ["#j", "#a", "#b", "#c", "#d"],
@@ -15,7 +15,7 @@ config = {
 "nonempty_fret" : "_",
 "normal_fret" : "=",
 "pre_nonempty_fret" : "l",
-"empty_string" : ";x",
+"empty_string" : "x",
 "silent_string" : "=="
 }
 
@@ -126,7 +126,7 @@ for counter in range(0,len(config["strings"])):
   line = config["strings"][counter].rjust(2, ";").ljust(3, " ")
   for n in range(0,config["neck_length"]):
     if n == 0 and not neck.has_key(counter):
-      fret = config["empty_string"]
+      fret = config["empty_string"].rjust(2, ";")
     else:
       try:
         fret = neck[counter][n]
