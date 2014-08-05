@@ -7,6 +7,7 @@ config = {
 "neck_length" : 7,
 "auto_size" : 0,
 "show_brief" : 1,
+"brief_brief" : 1,
 "brief_delimiter" : "4",
 "brief_seperator" : "-",
 "fingers" : ["#j", "#a", "#b", "#c", "#d"],
@@ -15,8 +16,8 @@ config = {
 "nonempty_fret" : "_",
 "normal_fret" : "=",
 "pre_nonempty_fret" : "l",
-"empty_string" : "x",
-"silent_string" : "=",
+"empty_string" : ";x",
+"silent_string" : "==",
 "input_seperator" : "."
 }
 
@@ -113,7 +114,9 @@ if config["show_brief"]:
         if neck[counter][k] == config["silent_string"]:
           line += config["silent_string"]
         else:
-          line += convert_number(k + 1) + config["brief_delimiter"] + neck[counter][k]
+          line += convert_number(k + 1)
+          if not config["brief_brief"]:
+            line += config["brief_delimiter"] + neck[counter][k]
     line += config["brief_seperator"]
   line = line[0:-1]
 print(line)
@@ -127,7 +130,7 @@ for counter in range(0,len(config["strings"])):
   line = config["strings"][counter].rjust(2, ";").ljust(3, " ")
   for n in range(0,config["neck_length"]):
     if n == 0 and not neck.has_key(counter):
-      fret = config["empty_string"].rjust(2, ";")
+      fret = config["empty_string"]
     else:
       try:
         fret = neck[counter][n]
@@ -137,8 +140,6 @@ for counter in range(0,len(config["strings"])):
     if not fret in [config["empty_fret"], config["silent_string"]]:
       line += config["nonempty_fret"]
       continue
-    if fret == config["silent_string"]:
-      line = line.ljust(5, config["silent_string"])
     try:
       if neck[counter][n + 1]:
         line += config["pre_nonempty_fret"]
