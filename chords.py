@@ -18,7 +18,8 @@ config = {
 "pre_nonempty_fret" : "l",
 "empty_string" : ";x",
 "silent_string" : "==",
-"input_seperator" : "."
+"input_seperator" : ".",
+"linebreak" : ""
 }
 
 help_msg = "Syntax: " + argv[0] + " [--option1=value[ --option2=value2[ ...]]] [string[:fret:finger][ string[:fret:finger][ ...]]]\n\nOptions must be provided as --option=value, and for a list of all possible configuration directives with their current values, use --config.\nAll arguments must be numbers. For example 5:2:4, would place the 4th finger on the 2nd fret of the 5th string."
@@ -119,7 +120,7 @@ if config["show_brief"]:
             line += config["brief_delimiter"] + neck[counter][k]
     line += config["brief_seperator"]
   line = line[0:-1]
-print(line)
+print(line + config["linebreak"])
 
 line = "  "
 for r in range(1,config["neck_length"] + 1):
@@ -145,4 +146,4 @@ for counter in range(0,len(config["strings"])):
         line += config["pre_nonempty_fret"]
     except:
       line += config["normal_fret"]
-  print(line)
+  print(line + config["linebreak"])
