@@ -1,5 +1,11 @@
 This code is provided for educational purposes only.
 
-I use it to produce my book "Guitar By Touch", and as such I don't want people replicating my work.
+I use it to produce my book "Guitar By Touch" (www.guitarbytouch.com), and as such I don't want people replicating my work.
 
 That said, if you're using this for teaching etc, that's absolutely fine, just so long as you send me an email letting me know how.
+
+You may not sell, modify or redistribute this code in any form, unless for some reason the person who you are trying to give it too does not have access to the internet, and therefor Github.
+
+For support, praise or suggestions, please email
+chris.norman2@googlemail.com
+
