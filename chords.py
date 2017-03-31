@@ -16,7 +16,7 @@ parser.add_argument(
 parser.add_argument(
     '-b',
     '--hide-brief',
-    action='store_false',
+    action='store_true',
     help='Hide the brief chord display'
 )
 parser.add_argument(
@@ -132,6 +132,7 @@ class String:
 class Marking:
     """A finger marking."""
     finger = attrib()
+    fret = attrib()
 
 
 def splitter(string, fret=None, finger=None):
@@ -182,43 +183,63 @@ for m in args.markings:
             f = args.any_finger
         except IndexError:
             raise ValueError('Invalid finger number: {}.'.format(finger))
-        s.markings[fret] = Marking(f)
+        s.markings[fret] = Marking(f, fret)
     except ValueError as e:
         quit(e)
 
 
-if args.length is None:
-    args.length = 5  # There are no finger markings.
-
-print(args.name)
-
-res = '   '
-for x in range(args.length):
-    res = '%s%-3s' % (res, convert_numbers(x + 1))
-print(res)
-
-for s in strings:
-    if 1 not in s.markings:
-        if s.muted:
-            s.markings[1] = Marking(args.muted_string)
-        elif not s.markings:
-            s.markings[1] = Marking(args.empty_string)
-    res = ''
+if __name__ == '__main__':
+    # Let's print some tabs!
+    strings.reverse()
+    if args.length is None:
+        args.length = 5  # There are no finger markings.
+    print(args.name)
+    # Print the brief tab (if required):
+    if args.hide_brief:
+        print()
+    else:
+        display = []
+        for s in strings:
+            if s.muted:
+                display.append(args.muted_string)
+                continue
+            for m in s.markings.values():  # Only print out 1.
+                if args.extended_brief:
+                    display.append('%s%s%s' % (
+                        convert_numbers(m.fret), args.delimiter, m.finger
+                    ))
+                else:
+                    display.append(convert_numbers(m.fret))
+                break
+            else:
+                display.append(args.empty_string)
+        print(args.separator.join(display))
+    res = '   '
     for x in range(args.length):
-        fret = x + 1
-        m = s.markings.get(fret)  # The current marking.
-        if m is None:
-            res = '%s%s%s' % (
-                res,
-                args.empty,
-                args.normal
-            )
-        else:
-            if x:
-                res = '%s%s' % (res[:-1], args.pre_fingered)
-            res = '%s%s%s' % (
-                res,
-                m.finger,
-                args.fingered
-            )
-    print('%s %s' % (s, res))
+        res = '%s%-3s' % (res, convert_numbers(x + 1))
+    print(res)
+    for s in strings:
+        if 1 not in s.markings:
+            if s.muted:
+                s.markings[1] = Marking(args.muted_string, 1)
+            elif not s.markings:
+                s.markings[1] = Marking(args.empty_string, 1)
+        res = ''
+        for x in range(args.length):
+            fret = x + 1
+            m = s.markings.get(fret)  # The current marking.
+            if m is None:
+                res = '%s%s%s' % (
+                    res,
+                    args.empty,
+                    args.normal
+                )
+            else:
+                if x:
+                    res = '%s%s' % (res[:-1], args.pre_fingered)
+                res = '%s%s%s' % (
+                    res,
+                    m.finger,
+                    args.fingered
+                )
+        print('%s %s' % (s, res))
