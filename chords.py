@@ -59,7 +59,7 @@ parser.add_argument(
 parser.add_argument(
     '-s',
     '--strings',
-    default=';e,;b,;g,;d,;a,;e',
+    default=';e,;a,;d,;g,;b,;e',
     help='String names'
 )
 parser.add_argument(
@@ -190,7 +190,6 @@ for m in args.markings:
 
 if __name__ == '__main__':
     # Let's print some tabs!
-    strings.reverse()
     if args.length is None:
         args.length = 5  # There are no finger markings.
     print(args.name)
@@ -214,6 +213,7 @@ if __name__ == '__main__':
             else:
                 display.append(args.empty_string)
         print(args.separator.join(display))
+    strings.reverse()
     res = '   '
     for x in range(args.length):
         res = '%s%-3s' % (res, convert_numbers(x + 1))
