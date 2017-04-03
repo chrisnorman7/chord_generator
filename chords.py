@@ -5,6 +5,7 @@ A braille chord generator.
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from attr import attrs, attrib, Factory
 
+auto_length = 'AUTOMATIC'
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
 parser.add_argument(
@@ -29,7 +30,7 @@ parser.add_argument(
     '-l',
     '--length',
     type=int,
-    default=None,
+    default=auto_length,
     help='The length of the neck'
 )
 parser.add_argument(
@@ -172,7 +173,7 @@ for m in args.markings:
             continue
         except ValueError:
             raise ValueError('Invalid fret number: %r.' % fret)
-        if args.length is None:
+        if args.length is auto_length:
             args.length = fret
         else:
             args.length = max(args.length, fret)
@@ -190,7 +191,7 @@ for m in args.markings:
 
 if __name__ == '__main__':
     # Let's print some tabs!
-    if args.length is None:
+    if args.length is auto_length:
         args.length = 5  # There are no finger markings.
     print(args.name)
     # Print the brief tab (if required):
