@@ -1,11 +1,37 @@
 """
-A braille chord generator.
+Generate chord diagrams using text.
+
+Written for braille but is highly configurable.
 """
 
+import sys
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from attr import attrs, attrib, Factory
 
-parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
+examples = r"""
+Usage Examples:
+A g chord on a guitar:
+{prog} -n ";,g" 1.3.2 2.2.1 6.3.3
+
+A c chord on a mandolin:
+{prog} -n ";,c" -s ";g,;d,;a,;e" 2.2.1 3.3.2
+
+Guitar c chord in print using classical finger notation:
+{prog} -n "C" -s "E,A,D,G,B,E" --fingers="T,I,M,A,P" --number-sign= \
+--numbers="0123456789" --empty-string=X --muted-string "=" --empty="-" 1 \
+2.3.3 3.2.2 5.1.1
+"""
+
+parser = ArgumentParser(
+    description=__doc__,
+    formatter_class=ArgumentDefaultsHelpFormatter,
+)
+
+parser.add_argument(
+    '--examples',
+    action='store_true',
+    help='Show usage examples'
+)
 
 parser.add_argument(
     '-n',
@@ -40,6 +66,12 @@ parser.add_argument(
     'the brief display'
 )
 parser.add_argument(
+    '-S',
+    '--separator',
+    default='-',
+    help='The character which should separate strings in the brief display'
+)
+parser.add_argument(
     '--number-sign',
     metavar='CHARACTER',
     default='#',
@@ -49,12 +81,6 @@ parser.add_argument(
     '--numbers',
     default='jabcdefghi',
     help='A list of number characters to be used as numbers'
-)
-parser.add_argument(
-    '-S',
-    '--separator',
-    default='-',
-    help='The character which should separate strings in the brief display'
 )
 parser.add_argument(
     '--fingers',
@@ -120,8 +146,10 @@ parser.add_argument(
 parser.add_argument(
     'markings',
     nargs='*',
-    help='The finger markings to be printed in the form string[.fret.finger]. '
-    'If fret and finger are omitted the string will be muted.'
+    help='The finger markings to be printed. Expected as:'
+    'string[.fret[.finger]]'
+    'If finger is muted then the any finger string will be used. If fret and '
+    'finger are omitted the string will be muted.'
 )
 
 args = parser.parse_args()
@@ -210,8 +238,8 @@ for m in args.markings:
         quit(e)
 
 
-if __name__ == '__main__':
-    # Let's print some tabs!
+def main():
+    """Let's print some tabs!"""
     if args.length < 1:
         args.length = 5  # There are no finger markings.
     print(args.name)
@@ -265,3 +293,10 @@ if __name__ == '__main__':
                     args.fingered
                 )
         print('%s %s' % (s, res))
+
+
+if __name__ == '__main__':
+    if args.examples:
+        print(examples.format(prog=sys.argv[0]))
+    else:
+        main()
