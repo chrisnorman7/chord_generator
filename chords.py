@@ -5,7 +5,6 @@ A braille chord generator.
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 from attr import attrs, attrib, Factory
 
-auto_length = 'AUTOMATIC'
 parser = ArgumentParser(formatter_class=ArgumentDefaultsHelpFormatter)
 
 parser.add_argument(
@@ -13,6 +12,13 @@ parser.add_argument(
     '--name',
     default=',blank ,*ord ,template',
     help='The name of the chord'
+)
+parser.add_argument(
+    '-l',
+    '--length',
+    type=int,
+    default=0,
+    help='The length of the neck'
 )
 parser.add_argument(
     '-b',
@@ -25,13 +31,6 @@ parser.add_argument(
     '--extended-brief',
     action='store_true',
     help='Show finger names as well as fret numbers in the brief chord display'
-)
-parser.add_argument(
-    '-l',
-    '--length',
-    type=int,
-    default=auto_length,
-    help='The length of the neck'
 )
 parser.add_argument(
     '-D',
@@ -62,6 +61,13 @@ parser.add_argument(
     '--strings',
     default=';e,;a,;d,;g,;b,;e',
     help='String names'
+)
+parser.add_argument(
+    '-p',
+    '--pad-fret-numbers',
+    default=' ',
+    metavar='CHARACTER',
+    help='The character to print before the fret numbers'
 )
 parser.add_argument(
     '--empty',
@@ -143,8 +149,12 @@ def splitter(string, fret=None, finger=None):
     return (string, fret, finger)
 
 
+# This variable will grow with the length of each string name allowing the code
+# to correctly align the fret numbers in the display.
+string_name_length = 0
 strings = []
 for s in args.strings.split(','):
+    string_name_length = max(string_name_length, len(s))
     strings.append(String(s))
 
 args.fingers = args.fingers.split(',')
@@ -173,7 +183,7 @@ for m in args.markings:
             continue
         except ValueError:
             raise ValueError('Invalid fret number: %r.' % fret)
-        if args.length is auto_length:
+        if args.length < 1:
             args.length = fret
         else:
             args.length = max(args.length, fret)
@@ -191,7 +201,7 @@ for m in args.markings:
 
 if __name__ == '__main__':
     # Let's print some tabs!
-    if args.length is auto_length:
+    if args.length < 1:
         args.length = 5  # There are no finger markings.
     print(args.name)
     # Print the brief tab (if required):
@@ -215,7 +225,7 @@ if __name__ == '__main__':
                 display.append(args.empty_string)
         print(args.separator.join(display))
     strings.reverse()
-    res = '   '
+    res = args.pad_fret_numbers * string_name_length + ' '
     for x in range(args.length):
         res = '%s%-3s' % (res, convert_numbers(x + 1))
     print(res)
