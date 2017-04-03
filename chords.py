@@ -40,6 +40,17 @@ parser.add_argument(
     'the brief display'
 )
 parser.add_argument(
+    '--number-sign',
+    metavar='CHARACTER',
+    default='#',
+    help='The sign to precede any numbers'
+)
+parser.add_argument(
+    '--numbers',
+    default='jabcdefghi',
+    help='A list of number characters to be used as numbers'
+)
+parser.add_argument(
     '-S',
     '--separator',
     default='-',
@@ -118,9 +129,9 @@ args = parser.parse_args()
 
 def convert_numbers(n):
     """Returns the number n as a braille string."""
-    res = '#'
+    res = args.number_sign
     for x in str(n):
-        res += 'jabcdefghi'[int(x)]
+        res += args.numbers[int(x)]
     return res
 
 
