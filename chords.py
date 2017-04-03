@@ -22,17 +22,20 @@ Guitar c chord in print using classical finger notation:
 2.3.3 3.2.2 5.1.1
 """
 
+
 parser = ArgumentParser(
     description=__doc__,
     formatter_class=ArgumentDefaultsHelpFormatter,
 )
 
+parser.add_argument(
+    '--examples',
+    action='store_true',
+    help='Show usage examples'
+)
+
+# Arguments which should be visible to the GUI:
 arguments = [
-    parser.add_argument(
-        '--examples',
-        action='store_true',
-        help='Show usage examples'
-    ),
     parser.add_argument(
         '-n',
         '--name',
@@ -143,23 +146,23 @@ arguments = [
         metavar='STRING',
         default='==',
         help='The text to print before a string which should not be played'
-    ),
-    parser.add_argument(
-        'markings',
-        nargs='*',
-        help='The finger markings to be printed. Expected as:'
-        'string[.fret[.finger]]'
-        'If finger is muted then the any finger string will be used. If fret '
-        'and finger are omitted the string will be muted.'
     )
 ]
+parser.add_argument(
+    'markings',
+    nargs='*',
+    help='The finger markings to be printed. Expected as:'
+    'string[.fret[.finger]]'
+    'If finger is muted then the any finger string will be used. If fret '
+    'and finger are omitted the string will be muted.'
+)
 
 
-def convert_numbers(n):
+def convert_numbers(n, number_sign, numbers):
     """Returns the number n as a braille string."""
-    res = args.number_sign
+    res = number_sign
     for x in str(n):
-        res += args.numbers[int(x)]
+        res += numbers[int(x)]
     return res
 
 
@@ -190,6 +193,9 @@ def splitter(string, fret=None, finger=None):
 
 def main():
     """Let's print some tabs!"""
+    args = parser.parse_args()
+    if args.examples:
+        return print(examples.format(prog=sys.argv[0]))
     # This variable will grow with the length of each string name allowing the
     # code to correctly align the fret numbers in the display.
     string_name_length = 0
@@ -237,7 +243,7 @@ def main():
                 raise ValueError('Invalid finger number: {}.'.format(finger))
             s.markings[fret] = Marking(f, fret)
         except ValueError as e:
-            quit(e)
+            return print(e)
     if args.length < 1:
         args.length = 5  # There are no finger markings.
     print(args.name)
@@ -253,10 +259,20 @@ def main():
             for m in s.markings.values():  # Only print out 1.
                 if args.extended_brief:
                     display.append('%s%s%s' % (
-                        convert_numbers(m.fret), args.delimiter, m.finger
+                        convert_numbers(
+                            m.fret,
+                            args.number_sign,
+                            args.numbers
+                        ), args.delimiter, m.finger
                     ))
                 else:
-                    display.append(convert_numbers(m.fret))
+                    display.append(
+                        convert_numbers(
+                            m.fret,
+                            args.number_sign,
+                            args.numbers
+                        )
+                    )
                 break
             else:
                 display.append(args.empty_string)
@@ -264,7 +280,14 @@ def main():
     strings.reverse()
     res = args.pad_fret_numbers * string_name_length + ' '
     for x in range(args.length):
-        res = '%s%-3s' % (res, convert_numbers(x + 1))
+        res = '%s%-3s' % (
+            res,
+            convert_numbers(
+                x + 1,
+                args.number_sign,
+                args.numbers
+            )
+        )
     print(res)
     for s in strings:
         if 1 not in s.markings:
@@ -294,8 +317,4 @@ def main():
 
 
 if __name__ == '__main__':
-    args = parser.parse_args()
-    if args.examples:
-        print(examples.format(prog=sys.argv[0]))
-    else:
-        main()
+    main()
