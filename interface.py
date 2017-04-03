@@ -3,11 +3,10 @@
 import sys
 from io import StringIO
 from contextlib import redirect_stdout, redirect_stderr
+from argparse import _StoreAction, _StoreTrueAction, _StoreFalseAction
 import wx
 from wx.lib.sized_controls import SizedFrame
-from chords import parser, main
-
-parser.error = print
+from chords import arguments, main
 
 
 def error(message, **kwargs):
@@ -24,6 +23,7 @@ class AddFrame(SizedFrame):
         self.parent = parent
         super(AddFrame, self).__init__(parent, title='Add A Marking')
         p = self.GetContentsPane()
+        p.SetSizerType('form')
         for entry in [
             'string',
             'fret',
@@ -66,38 +66,48 @@ class AddFrame(SizedFrame):
         self.Close(True)
 
 
-class ChordsFrame(wx.Frame):
+class ChordsFrame(SizedFrame):
     """The frame for showing chords."""
     def __init__(self):
         self._markings = []
         super(ChordsFrame, self).__init__(None, title='Chord Generator')
-        p = wx.Panel(self)
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer = wx.BoxSizer(wx.HORIZONTAL)
-        button_sizer = wx.BoxSizer(wx.VERTICAL)
-        top_sizer.Add(wx.StaticText(p, label='&Markings'), 0, wx.GROW)
+        p = self.GetContentsPane()
+        p.SetSizerType('form')
+        self.advanced_controls = {}
+        for a in arguments:
+            wx.StaticText(p, label=a.help)
+            if isinstance(a, _StoreAction):
+                ctrl = wx.TextCtrl(p, style=wx.TE_RICH)
+            elif isinstance(a, (_StoreTrueAction, _StoreFalseAction)):
+                ctrl = wx.CheckBox(p, label=a.help)
+            else:
+                error('No clue how to handle: %s.' % a.help)
+                continue
+            self.advanced_controls[a] = ctrl
+        self.on_restore(None)
+        wx.StaticText(p, label='&Markings')
         self.markings = wx.ListBox(p)
-        top_sizer.Add(self.markings, 1, wx.GROW)
-        self.add_btn = wx.Button(p, label='&Add')
-        button_sizer.Add(self.add_btn, 1, wx.GROW)
-        self.add_btn.Bind(wx.EVT_BUTTON, lambda event: AddFrame(self))
-        self.generate_btn = wx.Button(p, label='&Generate')
-        button_sizer.Add(self.generate_btn, 0, wx.GROW)
-        self.generate_btn.Bind(wx.EVT_BUTTON, self.on_generate)
-        self.preferences_btn = wx.Button(p, label='&Preferences')
-        button_sizer.Add(self.preferences_btn, 1, wx.GROW)
-        self.preferences_btn.Bind(wx.EVT_BUTTON, self.on_preferences)
-        self.save_btn = wx.Button(p, label='&Save')
-        button_sizer.Add(self.save_btn, 0, wx.GROW)
-        self.save_btn.Bind(wx.EVT_BUTTON, self.on_save)
-        top_sizer.Add(button_sizer, 0, wx.GROW)
-        main_sizer.Add(top_sizer, 1, wx.GROW)
-        main_sizer.Add(wx.StaticText(p, label='&Output'), 0, wx.GROW)
+        wx.Button(p, label='&Add').Bind(
+            wx.EVT_BUTTON,
+            lambda event:
+            AddFrame(self)
+        )
+        wx.Button(p, label='&Delete').Bind(wx.EVT_BUTTON, self.on_delete)
+        wx.Button(p, label='&Generate').Bind(wx.EVT_BUTTON, self.on_generate)
+        wx.Button(p, label='&Preferences').Bind(
+            wx.EVT_BUTTON,
+            self.on_preferences
+        )
+        wx.Button(p, label='&Save').Bind(wx.EVT_BUTTON, self.on_save)
+        wx.Button(p, label='&Restore Advanced Defaults').Bind(
+            wx.EVT_BUTTON,
+            self.on_restore
+        )
+        wx.StaticText(p, label='&Output')
         self.output = wx.TextCtrl(
             p,
             style=wx.TE_MULTILINE | wx.TE_RICH | wx.TE_DONTWRAP
         )
-        main_sizer.Add(self.output, 1, wx.GROW)
 
     def add_marking(self, marking):
         s = marking.split('.')
@@ -113,17 +123,40 @@ class ChordsFrame(wx.Frame):
         self._markings.append(marking)
         self.markings.Append(res)
 
+    def on_delete(self, event):
+        """Delete a marking."""
+        cr = self.markings.GetSelection()
+        if cr == -1:
+            wx.Bell()
+        else:
+            self.markings.Delete(cr)
+            del self._markings[cr]
+
     def on_generate(self, event):
         """Generate button was pressed."""
-        sys.argv = [
-            sys.argv[0],
-            *self._markings
-        ]
-        buf = StringIO()
-        with redirect_stderr(buf), redirect_stdout(buf):
+        event.Skip()
+        s = StringIO()
+        sys.argv = [sys.argv[0]]
+        for argument, control in self.advanced_controls.items():
+            name = argument.option_strings[-1]
+            if isinstance(argument, _StoreTrueAction):
+                if control.GetValue():
+                    sys.argv.append(name)
+            elif isinstance(argument, _StoreFalseAction):
+                if not control.GetValue():
+                    sys.argv.append(name)
+            elif isinstance(argument, _StoreAction):
+                sys.argv += [
+                    name,
+                    control.GetValue()
+                ]
+            else:
+                error('No clue what to do with argument: %s.' % argument.help)
+        sys.argv += self._markings
+        with redirect_stdout(s), redirect_stderr(s):
             main()
-        buf.seek(0)
-        self.output.SetValue(buf.read())
+        s.seek(0)
+        self.output.SetValue(s.read())
         self.output.SetFocus()
 
     def on_preferences(self, event):
@@ -133,6 +166,23 @@ class ChordsFrame(wx.Frame):
     def on_save(self, event):
         """Save button was pressed."""
         error('Save button was pressed.')
+
+    def on_restore(self, event):
+        """Restore all advanced settings to their defaults."""
+        for argument, control in self.advanced_controls.items():
+            try:
+                if isinstance(argument, _StoreAction):
+                    value = str(argument.default)
+                else:
+                    value = argument.default
+                control.SetValue(value)
+            except Exception as e:
+                error(
+                    'Failed to set the value for argument {}: {}.'.format(
+                        argument.help,
+                        e
+                    )
+                )
 
 
 if __name__ == '__main__':
