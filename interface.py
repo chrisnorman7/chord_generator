@@ -94,11 +94,6 @@ class ChordsFrame(SizedFrame):
         )
         wx.Button(p, label='&Delete').Bind(wx.EVT_BUTTON, self.on_delete)
         wx.Button(p, label='&Generate').Bind(wx.EVT_BUTTON, self.on_generate)
-        wx.Button(p, label='&Preferences').Bind(
-            wx.EVT_BUTTON,
-            self.on_preferences
-        )
-        wx.Button(p, label='&Save').Bind(wx.EVT_BUTTON, self.on_save)
         wx.Button(p, label='&Restore Advanced Defaults').Bind(
             wx.EVT_BUTTON,
             self.on_restore
@@ -106,6 +101,7 @@ class ChordsFrame(SizedFrame):
         wx.StaticText(p, label='&Output')
         self.output = wx.TextCtrl(
             p,
+            value='Set your preferences and click the "Generate" button.',
             style=wx.TE_MULTILINE | wx.TE_RICH | wx.TE_DONTWRAP
         )
 
@@ -158,14 +154,6 @@ class ChordsFrame(SizedFrame):
         s.seek(0)
         self.output.SetValue(s.read())
         self.output.SetFocus()
-
-    def on_preferences(self, event):
-        """Preferences button was clicked."""
-        error('Preferences.')
-
-    def on_save(self, event):
-        """Save button was pressed."""
-        error('Save button was pressed.')
 
     def on_restore(self, event):
         """Restore all advanced settings to their defaults."""
